@@ -10,7 +10,6 @@ export class Game {
     private engine: BABYLON.Engine;
     private scene: BABYLON.Scene;
     private camera: BABYLON.UniversalCamera;
-    private light: BABYLON.Light;
     
     private player!: Player;
     private enemyManager!: EnemyManager;
