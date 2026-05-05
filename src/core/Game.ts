@@ -184,32 +184,39 @@ export class Game {
     }
 
     private update(): void {
-        // Calculer deltaTime
         const currentTime = performance.now();
         this.deltaTime = (currentTime - this.lastFrameTime) / 1000;
         this.lastFrameTime = currentTime;
-
-        // Limiter deltaTime pour éviter les sauts
-        if (this.deltaTime > 0.1) {
-            this.deltaTime = 0.1;
-        }
-
-        // Mise à jour des entrées
+    
+        if (this.deltaTime > 0.1) this.deltaTime = 0.1;
+    
+        // --- GESTION DE L'INVENTAIRE ---
         const inputs = this.inputManager.getInputs();
         
-        // Mise à jour du joueur
-        this.player.update(this.deltaTime, inputs);
-        
-        // Mise à jour de la caméra pour suivre le joueur
+        if (inputs.inventory) {
+            // On bascule l'état dans l'UI et on récupère le nouvel état (ouvert/fermé)
+            const isOpen = this.uiManager.toggleInventory();
+            // On bloque/débloque les contrôles de mouvement
+            this.inputManager.isGuiOpen = isOpen;
+    
+            // Libérer ou capturer la souris
+            if (isOpen) {
+                document.exitPointerLock();
+            } else {
+                this.canvas.requestPointerLock();
+            }
+        }
+        // -------------------------------
+    
+        // On récupère les inputs frais (potentiellement bloqués si l'inventaire est ouvert)
+        const activeInputs = this.inputManager.getInputs();
+    
+        this.player.update(this.deltaTime, activeInputs);
         this.updateCamera();
-        
-        // Mise à jour des ennemis
         this.enemyManager.update(this.deltaTime, this.player);
-        
-        // Mise à jour du système de combat
         this.combatSystem.update(this.deltaTime);
         
-        // Mise à jour de l'UI
+        // On passe les ennemis à l'UI pour le compteur en haut à droite
         this.uiManager.update(this.player, this.enemyManager.getEnemies());
     }
 
