@@ -1,3 +1,5 @@
+import * as BABYLON from '@babylonjs/core';
+
 import { Player } from '../entities/Player';
 
 export interface Skill {
