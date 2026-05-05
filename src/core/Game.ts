@@ -29,20 +29,26 @@ export class Game {
         this.canvas = canvasElement;
         this.engine = new BABYLON.Engine(this.canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
+        this.scene.collisionsEnabled = true;
         
         // Configuration de la caméra
-        this.camera = new BABYLON.UniversalCamera('camera', new BABYLON.Vector3(0, 10, -20), this.scene);
+        this.camera = new BABYLON.UniversalCamera('camera', new BABYLON.Vector3(0, 15, -25), this.scene);
         this.camera.attachControl(this.canvas, true);
         this.camera.speed = 0;
         this.camera.inertia = 0.8;
         this.camera.angularSensibility = 1000;
         
-        // Lighting
-        this.light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), this.scene);
-        this.light.intensity = 0.7;
+        // Lighting - Plus lumineux
+        const hemisphericLight = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(0, 1, 0), this.scene);
+        hemisphericLight.intensity = 1.2;
+        hemisphericLight.diffuse = new BABYLON.Color3(1, 1, 1);
         
-        const pointLight = new BABYLON.PointLight('pointLight', new BABYLON.Vector3(10, 20, 10), this.scene);
-        pointLight.intensity = 0.5;
+        const pointLight = new BABYLON.PointLight('pointLight', new BABYLON.Vector3(0, 30, 0), this.scene);
+        pointLight.intensity = 1.5;
+        pointLight.range = 100;
+        
+        // Créer l'arène
+        this.createArena();
         
         // Skybox
         this.createSkybox();
@@ -51,11 +57,44 @@ export class Game {
         this.initializeSystems();
     }
 
+    private createArena(): void {
+        // Sol
+        const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 60, height: 60 }, this.scene);
+        const groundMaterial = new BABYLON.StandardMaterial('groundMaterial', this.scene);
+        groundMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.5, 0.3);
+        ground.material = groundMaterial;
+        ground.position.y = -0.5;
+        
+        // Murs (limites de l'arène)
+        const wallMaterial = new BABYLON.StandardMaterial('wallMaterial', this.scene);
+        wallMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.3, 0.3);
+        
+        // Mur nord
+        const wallNorth = BABYLON.MeshBuilder.CreateBox('wallNorth', { width: 60, height: 2, depth: 1 }, this.scene);
+        wallNorth.position = new BABYLON.Vector3(0, 1, -30);
+        wallNorth.material = wallMaterial;
+        
+        // Mur sud
+        const wallSouth = BABYLON.MeshBuilder.CreateBox('wallSouth', { width: 60, height: 2, depth: 1 }, this.scene);
+        wallSouth.position = new BABYLON.Vector3(0, 1, 30);
+        wallSouth.material = wallMaterial;
+        
+        // Mur est
+        const wallEast = BABYLON.MeshBuilder.CreateBox('wallEast', { width: 1, height: 2, depth: 60 }, this.scene);
+        wallEast.position = new BABYLON.Vector3(30, 1, 0);
+        wallEast.material = wallMaterial;
+        
+        // Mur ouest
+        const wallWest = BABYLON.MeshBuilder.CreateBox('wallWest', { width: 1, height: 2, depth: 60 }, this.scene);
+        wallWest.position = new BABYLON.Vector3(-30, 1, 0);
+        wallWest.material = wallMaterial;
+    }
+
     private createSkybox(): void {
-        const skybox = BABYLON.MeshBuilder.CreateBox('skybox', { size: 1000 }, this.scene);
+        const skybox = BABYLON.MeshBuilder.CreateBox('skybox', { size: 200 }, this.scene);
         const skyboxMaterial = new BABYLON.StandardMaterial('skyboxMaterial', this.scene);
         skyboxMaterial.backFaceCulling = false;
-        skyboxMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.3, 0.5);
+        skyboxMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.5, 0.8);
         skybox.material = skyboxMaterial;
     }
 
@@ -65,7 +104,7 @@ export class Game {
         
         // Créer les ennemis
         this.enemyManager = new EnemyManager(this.scene);
-        this.enemyManager.spawnEnemies(3);
+        this.enemyManager.spawnEnemies(5);
         
         // Systèmes
         this.combatSystem = new CombatSystem(this.player);
@@ -120,7 +159,7 @@ export class Game {
     private updateCamera(): void {
         const playerPos = this.player.getPosition();
         const cameraDistance = 25;
-        const cameraHeight = 12;
+        const cameraHeight = 15;
         
         const targetPos = new BABYLON.Vector3(
             playerPos.x,
@@ -134,6 +173,6 @@ export class Game {
             0.1
         );
         
-        this.camera.setTarget(new BABYLON.Vector3(playerPos.x, playerPos.y + 2, playerPos.z));
+        this.camera.setTarget(new BABYLON.Vector3(playerPos.x, playerPos.y + 1, playerPos.z));
     }
 }
