@@ -29,50 +29,51 @@ export class InputManager {
         this.setupEventListeners(canvas);
     }
 
-    private setupEventListeners(canvas: HTMLCanvasElement): void {
-        document.addEventListener('keydown', (event) => this.handleKeyDown(event));
-        document.addEventListener('keyup', (event) => this.handleKeyUp(event));
-        canvas.addEventListener('click', (event) => this.handleMouseClick(event));
-    }
-
     private handleKeyDown(event: KeyboardEvent): void {
-        const key = event.key.toLowerCase();
+        // On utilise code pour ignorer le type de clavier (AZERTY/QWERTY)
+        const code = event.code; 
         
-        switch (key) {
-            case 'z':
-            case 'arrowup':
+        // Éviter la répétition automatique des touches système (Inventaire, Quêtes)
+        if (event.repeat && (code === 'KeyI' || code === 'KeyQ' || code === 'Escape')) return;
+    
+        switch (code) {
+            case 'KeyW': // Touche 'Z' sur AZERTY
+            case 'ArrowUp':
                 this.inputs.moveForward = true;
                 break;
-            case 's':
-            case 'arrowdown':
+            case 'KeyS':
+            case 'ArrowDown':
                 this.inputs.moveBackward = true;
                 break;
-            case 'q':
+            case 'KeyA': // Touche 'Q' sur AZERTY
+            case 'ArrowLeft':
                 if (event.shiftKey) {
                     this.inputs.quests = true;
                 } else {
                     this.inputs.moveLeft = true;
                 }
                 break;
-            case 'd':
-            case 'arrowright':
+            case 'KeyD':
+            case 'ArrowRight':
                 this.inputs.moveRight = true;
                 break;
-            case 'e':
+            case 'KeyE':
                 this.inputs.skill1 = true;
                 break;
-            case 'r':
+            case 'KeyR':
                 this.inputs.skill2 = true;
                 break;
-            case 'i':
+            case 'KeyI':
                 this.inputs.inventory = true;
                 break;
-            case 'escape':
+            case 'Space': // On rajoute le saut !
+                this.inputs.jump = true; // N'oublie pas de rajouter 'jump' dans ton interface Inputs
+                break;
+            case 'Escape':
                 this.inputs.pause = true;
                 break;
         }
     }
-
     private handleKeyUp(event: KeyboardEvent): void {
         const key = event.key.toLowerCase();
         
@@ -117,5 +118,28 @@ export class InputManager {
 
     public getInputs(): Inputs {
         return { ...this.inputs };
+    }
+
+    export class InputManager {
+        private inputs: Inputs = { /* ... tes variables ... */ };
+        public isGuiOpen: boolean = false; // Flag pour savoir si un menu est ouvert
+    
+        // ... (constructor et setup) ...
+    
+        public getInputs(): Inputs {
+            // Si l'UI est ouverte, on renvoie des inputs "vides" pour le mouvement
+            if (this.isGuiOpen) {
+                return {
+                    ...this.inputs,
+                    moveForward: false,
+                    moveBackward: false,
+                    moveLeft: false,
+                    moveRight: false,
+                    attack: false
+                    // On laisse passer 'pause' ou 'inventory' pour pouvoir fermer le menu !
+                };
+            }
+            return { ...this.inputs };
+        }
     }
 }
