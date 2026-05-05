@@ -227,7 +227,7 @@ export class Game {
             this.combatSystem.update(this.deltaTime); // Important pour les cooldowns
             
             // 6. Mise à jour visuelle
-            this.uiManager.update(this.player, this.enemyManager.getEnemies());
+            this.uiManager.update(this.player, this.enemyManager.getEnemies(), this.combatSystem);
         }
 
     private updateCamera(): void {
