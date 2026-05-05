@@ -183,4 +183,8 @@ export class Player extends Character {
         this.stats.health -= damage;
         console.log(`Joueur prend ${damage} dégâts. Santé: ${this.stats.health}`);
     }
+
+    public consumeMana(amount: number): void {
+        this.stats.mana = Math.max(0, this.stats.mana - amount);
+    }
 }
