@@ -23,7 +23,6 @@ export class Player extends Character {
     }
 
     private createMesh(): void {
-        // Corps principal (torso)
         const torso = BABYLON.MeshBuilder.CreateCapsule('playerTorso', {
             height: 1.2,
             radius: 0.3,
@@ -32,7 +31,6 @@ export class Player extends Character {
         torso.material = this.createTorsoMaterial();
         this.meshes.push(torso);
 
-        // Tête
         const head = BABYLON.MeshBuilder.CreateSphere('playerHead', {
             segments: 16,
             diameter: 0.4,
@@ -42,7 +40,6 @@ export class Player extends Character {
         head.material = this.createHeadMaterial();
         this.meshes.push(head);
         
-        // Bras gauche
         const leftArm = BABYLON.MeshBuilder.CreateCapsule('leftArm', {
             height: 1,
             radius: 0.15,
@@ -52,7 +49,6 @@ export class Player extends Character {
         leftArm.material = this.createLimbMaterial();
         this.meshes.push(leftArm);
         
-        // Bras droit
         const rightArm = BABYLON.MeshBuilder.CreateCapsule('rightArm', {
             height: 1,
             radius: 0.15,
@@ -62,7 +58,6 @@ export class Player extends Character {
         rightArm.material = this.createLimbMaterial();
         this.meshes.push(rightArm);
         
-        // Jambe gauche
         const leftLeg = BABYLON.MeshBuilder.CreateCapsule('leftLeg', {
             height: 0.9,
             radius: 0.15,
@@ -72,7 +67,6 @@ export class Player extends Character {
         leftLeg.material = this.createLegMaterial();
         this.meshes.push(leftLeg);
         
-        // Jambe droite
         const rightLeg = BABYLON.MeshBuilder.CreateCapsule('rightLeg', {
             height: 0.9,
             radius: 0.15,
@@ -87,28 +81,28 @@ export class Player extends Character {
 
     private createTorsoMaterial(): BABYLON.StandardMaterial {
         const material = new BABYLON.StandardMaterial('playerTorso', this.scene);
-        material.emissiveColor = new BABYLON.Color3(0.1, 0.3, 0.8); // Armure bleue
+        material.emissiveColor = new BABYLON.Color3(0.1, 0.3, 0.8);
         material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
         return material;
     }
 
     private createHeadMaterial(): BABYLON.StandardMaterial {
         const material = new BABYLON.StandardMaterial('playerHead', this.scene);
-        material.emissiveColor = new BABYLON.Color3(0.9, 0.8, 0.6); // Peau
+        material.emissiveColor = new BABYLON.Color3(0.9, 0.8, 0.6);
         material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         return material;
     }
     
     private createLimbMaterial(): BABYLON.StandardMaterial {
         const material = new BABYLON.StandardMaterial('playerLimb', this.scene);
-        material.emissiveColor = new BABYLON.Color3(0.9, 0.8, 0.6); // Peau
+        material.emissiveColor = new BABYLON.Color3(0.9, 0.8, 0.6);
         material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         return material;
     }
     
     private createLegMaterial(): BABYLON.StandardMaterial {
         const material = new BABYLON.StandardMaterial('playerLeg', this.scene);
-        material.emissiveColor = new BABYLON.Color3(0.2, 0.15, 0.1); // Pantalon noir
+        material.emissiveColor = new BABYLON.Color3(0.2, 0.15, 0.1);
         material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         return material;
     }
@@ -117,6 +111,11 @@ export class Player extends Character {
         this.handleMovement(deltaTime, inputs);
         this.applyGravity(deltaTime);
         this.updatePosition(deltaTime);
+        
+        // --- REGEN DE MANA (Optionnel mais recommandé) ---
+        if (this.stats.mana < 100) {
+            this.stats.mana = Math.min(100, this.stats.mana + (2 * deltaTime)); // 2 mana par seconde
+        }
     }
 
     private handleMovement(deltaTime: number, inputs: Inputs): void {
@@ -130,10 +129,11 @@ export class Player extends Character {
         if (moveDirection.length() > 0) {
             moveDirection.normalize();
             
-            // --- RAJOUT : Tourner le joueur vers sa direction de marche ---
-            const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
-            this.mesh.rotation.y = targetAngle;
-            // -------------------------------------------------------------
+            // Correction de l'erreur "Possibly Null" sur this.mesh
+            if (this.mesh) {
+                const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
+                this.mesh.rotation.y = targetAngle;
+            }
     
             moveDirection.scaleInPlace(this.moveSpeed * deltaTime);
             this.velocity.x = moveDirection.x;
@@ -143,7 +143,6 @@ export class Player extends Character {
             this.velocity.z *= 0.9;
         }
     
-        // Gestion du saut (si la touche est dans tes Inputs)
         if (inputs.jump && !this.isJumping) {
             this.velocity.y = this.jumpForce;
             this.isJumping = true;
@@ -153,8 +152,9 @@ export class Player extends Character {
             this.attack();
         }
     }
+
     private applyGravity(deltaTime: number): void {
-        const groundLevel = 0.6; // La moitié de la hauteur du torse pour qu'il touche le sol
+        const groundLevel = 0.6;
         if (this.position.y > groundLevel) {
             this.velocity.y -= this.gravity * deltaTime;
         } else {
@@ -163,8 +163,10 @@ export class Player extends Character {
             this.isJumping = false;
         }
     }
+
     private updatePosition(deltaTime: number): void {
         this.position.addInPlace(this.velocity.scale(deltaTime));
+        // Correction de l'erreur "Possibly Null"
         if (this.mesh) {
             this.mesh.position = this.position.clone();
         }
@@ -172,7 +174,6 @@ export class Player extends Character {
 
     private attack(): void {
         console.log('Attaque du joueur!');
-        // Implémentation du système d'attaque
     }
 
     public getPosition(): BABYLON.Vector3 {
