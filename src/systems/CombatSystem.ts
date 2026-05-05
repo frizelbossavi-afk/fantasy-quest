@@ -40,22 +40,37 @@ export class CombatSystem {
         }
     }
 
-    public useSkill(skillName: string): boolean {
+    public useSkill(skillName: string, targetEnemies?: any[]): boolean { // On peut passer les ennemis ici
         const skill = this.skills.get(skillName);
         if (!skill) return false;
-
-        const playerStats = this.player.getStats();
-        const cooldown = this.skillCooldowns.get(skillName) || 0;
-
-        if (playerStats.health <= 0) return false;
-        if (playerStats.mana < skill.manaCost) return false;
-        if (cooldown > 0) return false;
-
-        console.log(`Utilisation de ${skill.name}!`);
+    
+        const stats = this.player.getStats();
+        const currentCooldown = this.skillCooldowns.get(skillName) || 0;
+    
+        if (stats.mana < skill.manaCost || currentCooldown > 0) return false;
+    
+        // --- 1. CONSOMMER LE MANA ---
+        // Il faudra ajouter une méthode consumeMana dans ta classe Player
+        this.player.consumeMana(skill.manaCost);
+    
+        // --- 2. APPLIQUER LE COOLDOWN ---
         this.skillCooldowns.set(skillName, skill.cooldown);
+    
+        // --- 3. LOGIQUE DE DÉGÂTS (Exemple simple) ---
+        console.log(`Le joueur lance ${skill.name} !`);
+        
+        // Si tu as une liste d'ennemis, tu peux vérifier qui est à portée
+        if (targetEnemies) {
+            targetEnemies.forEach(enemy => {
+                const distance = BABYLON.Vector3.Distance(this.player.getPosition(), enemy.getPosition());
+                if (distance < 5) { // Portée arbitraire de 5 unités
+                    enemy.takeDamage(skill.damage);
+                }
+            });
+        }
+    
         return true;
     }
-
     public getSkill(skillName: string): Skill | undefined {
         return this.skills.get(skillName);
     }
