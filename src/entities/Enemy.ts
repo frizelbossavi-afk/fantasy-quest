@@ -9,8 +9,9 @@ export class Enemy extends Character {
     private attackCooldown: number = 0;
     private attackDelay: number = 1.5;
     private target: Player | null = null;
+    private enemyType: number = 0;
 
-    constructor(scene: BABYLON.Scene, position: BABYLON.Vector3) {
+    constructor(scene: BABYLON.Scene, position: BABYLON.Vector3, enemyType: number = 0) {
         super(scene, position, {
             maxHealth: 30,
             mana: 20,
@@ -19,19 +20,82 @@ export class Enemy extends Character {
             level: 1,
             experience: 50,
         });
+        this.enemyType = enemyType;
         this.createMesh();
     }
 
     private createMesh(): void {
-        const body = BABYLON.MeshBuilder.CreateBox('enemyBody', { size: 1 }, this.scene);
+        if (this.enemyType === 0) {
+            this.createGoblin();
+        } else {
+            this.createOrc();
+        }
+    }
+    
+    private createGoblin(): void {
+        // Petits monstres verts
+        const body = BABYLON.MeshBuilder.CreateCapsule('goblinBody', {
+            height: 1.2,
+            radius: 0.25,
+        }, this.scene);
         body.position = this.position.clone();
-        body.material = this.createEnemyMaterial();
+        body.material = this.createGoblinMaterial();
+        
+        // Tête (plus grosse)
+        const head = BABYLON.MeshBuilder.CreateSphere('goblinHead', {
+            diameter: 0.5,
+            segments: 12
+        }, this.scene);
+        head.position.y = 0.8;
+        head.parent = body;
+        head.material = this.createGoblinMaterial();
+        
+        this.mesh = body;
+    }
+    
+    private createOrc(): void {
+        // Grands monstres rouges
+        const body = BABYLON.MeshBuilder.CreateCapsule('orcBody', {
+            height: 1.8,
+            radius: 0.4,
+        }, this.scene);
+        body.position = this.position.clone();
+        body.material = this.createOrcMaterial();
+        
+        // Tête
+        const head = BABYLON.MeshBuilder.CreateSphere('orcHead', {
+            diameter: 0.6,
+            segments: 12
+        }, this.scene);
+        head.position.y = 1.1;
+        head.parent = body;
+        head.material = this.createOrcMaterial();
+        
+        // Épée (simple representation)
+        const sword = BABYLON.MeshBuilder.CreateBox('orcSword', {
+            width: 0.1,
+            height: 0.8,
+            depth: 0.05
+        }, this.scene);
+        sword.position = new BABYLON.Vector3(0.5, 0.2, 0);
+        sword.parent = body;
+        const swordMaterial = new BABYLON.StandardMaterial('swordMat', this.scene);
+        swordMaterial.emissiveColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+        sword.material = swordMaterial;
+        
         this.mesh = body;
     }
 
-    private createEnemyMaterial(): BABYLON.StandardMaterial {
-        const material = new BABYLON.StandardMaterial('enemyMaterial', this.scene);
-        material.emissiveColor = new BABYLON.Color3(1, 0.2, 0.2);
+    private createGoblinMaterial(): BABYLON.StandardMaterial {
+        const material = new BABYLON.StandardMaterial('goblinMaterial', this.scene);
+        material.emissiveColor = new BABYLON.Color3(0.3, 0.7, 0.3); // Vert
+        material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        return material;
+    }
+    
+    private createOrcMaterial(): BABYLON.StandardMaterial {
+        const material = new BABYLON.StandardMaterial('orcMaterial', this.scene);
+        material.emissiveColor = new BABYLON.Color3(0.8, 0.3, 0.3); // Rouge foncé
         material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         return material;
     }

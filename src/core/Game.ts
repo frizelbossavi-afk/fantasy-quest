@@ -37,17 +37,18 @@ export class Game {
         this.camera.inertia = 0.8;
         this.camera.angularSensibility = 1000;
         
-        // Lighting - Plus lumineux
-        const hemisphericLight = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(0, 1, 0), this.scene);
-        hemisphericLight.intensity = 1.2;
-        hemisphericLight.diffuse = new BABYLON.Color3(1, 1, 1);
+        // Lighting - Plus lumineux et naturel
+        const hemisphericLight = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(0.5, 1, 0.5), this.scene);
+        hemisphericLight.intensity = 1.3;
+        hemisphericLight.diffuse = new BABYLON.Color3(0.9, 0.9, 1);
+        hemisphericLight.groundColor = new BABYLON.Color3(0.5, 0.7, 0.5);
         
-        const pointLight = new BABYLON.PointLight('pointLight', new BABYLON.Vector3(0, 30, 0), this.scene);
-        pointLight.intensity = 1.5;
-        pointLight.range = 100;
+        const sunLight = new BABYLON.PointLight('sunLight', new BABYLON.Vector3(50, 50, 50), this.scene);
+        sunLight.intensity = 0.8;
+        sunLight.range = 200;
         
-        // Créer l'arène
-        this.createArena();
+        // Créer le paysage
+        this.createLandscape();
         
         // Skybox
         this.createSkybox();
@@ -56,44 +57,101 @@ export class Game {
         this.initializeSystems();
     }
 
-    private createArena(): void {
-        // Sol
-        const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 60, height: 60 }, this.scene);
+    private createLandscape(): void {
+        // Sol principal avec herbe
+        const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 100, height: 100, subdivisions: 50 }, this.scene);
         const groundMaterial = new BABYLON.StandardMaterial('groundMaterial', this.scene);
-        groundMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.5, 0.3);
+        groundMaterial.emissiveColor = new BABYLON.Color3(0.4, 0.6, 0.3);
         ground.material = groundMaterial;
         ground.position.y = -0.5;
         
-        // Murs (limites de l'arène)
-        const wallMaterial = new BABYLON.StandardMaterial('wallMaterial', this.scene);
-        wallMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.3, 0.3);
+        // Arène de combat au centre
+        const arena = BABYLON.MeshBuilder.CreateGround('arena', { width: 60, height: 60 }, this.scene);
+        const arenaMaterial = new BABYLON.StandardMaterial('arenaMaterial', this.scene);
+        arenaMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.4);
+        arena.material = arenaMaterial;
+        arena.position.y = 0.05;
         
-        // Mur nord
-        const wallNorth = BABYLON.MeshBuilder.CreateBox('wallNorth', { width: 60, height: 2, depth: 1 }, this.scene);
-        wallNorth.position = new BABYLON.Vector3(0, 1, -30);
+        // Murs de l'arène
+        const wallMaterial = new BABYLON.StandardMaterial('wallMaterial', this.scene);
+        wallMaterial.emissiveColor = new BABYLON.Color3(0.6, 0.4, 0.3);
+        
+        const wallNorth = BABYLON.MeshBuilder.CreateBox('wallNorth', { width: 60, height: 3, depth: 2 }, this.scene);
+        wallNorth.position = new BABYLON.Vector3(0, 1.5, -30);
         wallNorth.material = wallMaterial;
         
-        // Mur sud
-        const wallSouth = BABYLON.MeshBuilder.CreateBox('wallSouth', { width: 60, height: 2, depth: 1 }, this.scene);
-        wallSouth.position = new BABYLON.Vector3(0, 1, 30);
+        const wallSouth = BABYLON.MeshBuilder.CreateBox('wallSouth', { width: 60, height: 3, depth: 2 }, this.scene);
+        wallSouth.position = new BABYLON.Vector3(0, 1.5, 30);
         wallSouth.material = wallMaterial;
         
-        // Mur est
-        const wallEast = BABYLON.MeshBuilder.CreateBox('wallEast', { width: 1, height: 2, depth: 60 }, this.scene);
-        wallEast.position = new BABYLON.Vector3(30, 1, 0);
+        const wallEast = BABYLON.MeshBuilder.CreateBox('wallEast', { width: 2, height: 3, depth: 60 }, this.scene);
+        wallEast.position = new BABYLON.Vector3(30, 1.5, 0);
         wallEast.material = wallMaterial;
         
-        // Mur ouest
-        const wallWest = BABYLON.MeshBuilder.CreateBox('wallWest', { width: 1, height: 2, depth: 60 }, this.scene);
-        wallWest.position = new BABYLON.Vector3(-30, 1, 0);
+        const wallWest = BABYLON.MeshBuilder.CreateBox('wallWest', { width: 2, height: 3, depth: 60 }, this.scene);
+        wallWest.position = new BABYLON.Vector3(-30, 1.5, 0);
         wallWest.material = wallMaterial;
+        
+        // Décoration - Arbres
+        this.createTrees();
+        
+        // Décoration - Rochers
+        this.createRocks();
+    }
+    
+    private createTrees(): void {
+        const treePPositions = [
+            { x: -40, z: -40 },
+            { x: 40, z: -40 },
+            { x: -40, z: 40 },
+            { x: 40, z: 40 },
+            { x: 0, z: -45 },
+            { x: 0, z: 45 }
+        ];
+        
+        treePPositions.forEach(pos => {
+            // Tronc
+            const trunk = BABYLON.MeshBuilder.CreateCylinder('trunk', { height: 5, diameter: 0.8 }, this.scene);
+            trunk.position = new BABYLON.Vector3(pos.x, 2.5, pos.z);
+            const trunkMaterial = new BABYLON.StandardMaterial('trunkMat', this.scene);
+            trunkMaterial.emissiveColor = new BABYLON.Color3(0.4, 0.2, 0.1);
+            trunk.material = trunkMaterial;
+            
+            // Feuillage
+            const foliage = BABYLON.MeshBuilder.CreateSphere('foliage', { diameter: 6, segments: 16 }, this.scene);
+            foliage.position = new BABYLON.Vector3(pos.x, 6.5, pos.z);
+            const foliageMaterial = new BABYLON.StandardMaterial('foliageMat', this.scene);
+            foliageMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.5, 0.2);
+            foliage.material = foliageMaterial;
+        });
+    }
+    
+    private createRocks(): void {
+        const rockPositions = [
+            { x: -35, z: 0 },
+            { x: 35, z: 0 },
+            { x: 0, z: -35 },
+            { x: 0, z: 35 },
+            { x: -20, z: -20 },
+            { x: 20, z: -20 },
+            { x: -20, z: 20 },
+            { x: 20, z: 20 }
+        ];
+        
+        rockPositions.forEach((pos, index) => {
+            const rock = BABYLON.MeshBuilder.CreateSphere('rock' + index, { diameter: 1.5, segments: 8 }, this.scene);
+            rock.position = new BABYLON.Vector3(pos.x, 0.75, pos.z);
+            const rockMaterial = new BABYLON.StandardMaterial('rockMat' + index, this.scene);
+            rockMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+            rock.material = rockMaterial;
+        });
     }
 
     private createSkybox(): void {
-        const skybox = BABYLON.MeshBuilder.CreateBox('skybox', { size: 200 }, this.scene);
+        const skybox = BABYLON.MeshBuilder.CreateBox('skybox', { size: 300 }, this.scene);
         const skyboxMaterial = new BABYLON.StandardMaterial('skyboxMaterial', this.scene);
         skyboxMaterial.backFaceCulling = false;
-        skyboxMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.5, 0.8);
+        skyboxMaterial.emissiveColor = new BABYLON.Color3(0.6, 0.8, 1);
         skybox.material = skyboxMaterial;
     }
 

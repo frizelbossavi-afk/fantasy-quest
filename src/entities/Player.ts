@@ -23,38 +23,92 @@ export class Player extends Character {
     }
 
     private createMesh(): void {
-        // Créer le corps du joueur
-        const body = BABYLON.MeshBuilder.CreateCapsule('playerBody', {
-            height: 2,
-            radius: 0.4,
+        // Corps principal (torso)
+        const torso = BABYLON.MeshBuilder.CreateCapsule('playerTorso', {
+            height: 1.2,
+            radius: 0.3,
         }, this.scene);
-        body.position = this.position.clone();
-        body.material = this.createPlayerMaterial();
-        this.meshes.push(body);
+        torso.position = this.position.clone();
+        torso.material = this.createTorsoMaterial();
+        this.meshes.push(torso);
 
-        // Créer la tête
+        // Tête
         const head = BABYLON.MeshBuilder.CreateSphere('playerHead', {
             segments: 16,
-            diameter: 0.5,
+            diameter: 0.4,
         }, this.scene);
-        head.position.y = 1;
-        head.parent = body;
+        head.position.y = 1.1;
+        head.parent = torso;
         head.material = this.createHeadMaterial();
         this.meshes.push(head);
+        
+        // Bras gauche
+        const leftArm = BABYLON.MeshBuilder.CreateCapsule('leftArm', {
+            height: 1,
+            radius: 0.15,
+        }, this.scene);
+        leftArm.position = new BABYLON.Vector3(-0.45, 0.3, 0);
+        leftArm.parent = torso;
+        leftArm.material = this.createLimbMaterial();
+        this.meshes.push(leftArm);
+        
+        // Bras droit
+        const rightArm = BABYLON.MeshBuilder.CreateCapsule('rightArm', {
+            height: 1,
+            radius: 0.15,
+        }, this.scene);
+        rightArm.position = new BABYLON.Vector3(0.45, 0.3, 0);
+        rightArm.parent = torso;
+        rightArm.material = this.createLimbMaterial();
+        this.meshes.push(rightArm);
+        
+        // Jambe gauche
+        const leftLeg = BABYLON.MeshBuilder.CreateCapsule('leftLeg', {
+            height: 0.9,
+            radius: 0.15,
+        }, this.scene);
+        leftLeg.position = new BABYLON.Vector3(-0.25, -0.8, 0);
+        leftLeg.parent = torso;
+        leftLeg.material = this.createLegMaterial();
+        this.meshes.push(leftLeg);
+        
+        // Jambe droite
+        const rightLeg = BABYLON.MeshBuilder.CreateCapsule('rightLeg', {
+            height: 0.9,
+            radius: 0.15,
+        }, this.scene);
+        rightLeg.position = new BABYLON.Vector3(0.25, -0.8, 0);
+        rightLeg.parent = torso;
+        rightLeg.material = this.createLegMaterial();
+        this.meshes.push(rightLeg);
 
-        this.mesh = body;
+        this.mesh = torso;
     }
 
-    private createPlayerMaterial(): BABYLON.StandardMaterial {
-        const material = new BABYLON.StandardMaterial('playerMaterial', this.scene);
-        material.emissiveColor = new BABYLON.Color3(0.2, 0.6, 1);
-        material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+    private createTorsoMaterial(): BABYLON.StandardMaterial {
+        const material = new BABYLON.StandardMaterial('playerTorso', this.scene);
+        material.emissiveColor = new BABYLON.Color3(0.1, 0.3, 0.8); // Armure bleue
+        material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
         return material;
     }
 
     private createHeadMaterial(): BABYLON.StandardMaterial {
-        const material = new BABYLON.StandardMaterial('headMaterial', this.scene);
-        material.emissiveColor = new BABYLON.Color3(1, 0.8, 0.6);
+        const material = new BABYLON.StandardMaterial('playerHead', this.scene);
+        material.emissiveColor = new BABYLON.Color3(0.9, 0.8, 0.6); // Peau
+        material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        return material;
+    }
+    
+    private createLimbMaterial(): BABYLON.StandardMaterial {
+        const material = new BABYLON.StandardMaterial('playerLimb', this.scene);
+        material.emissiveColor = new BABYLON.Color3(0.9, 0.8, 0.6); // Peau
+        material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        return material;
+    }
+    
+    private createLegMaterial(): BABYLON.StandardMaterial {
+        const material = new BABYLON.StandardMaterial('playerLeg', this.scene);
+        material.emissiveColor = new BABYLON.Color3(0.2, 0.15, 0.1); // Pantalon noir
         material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         return material;
     }
