@@ -31,7 +31,7 @@ export class Enemy extends Character {
 
     private createEnemyMaterial(): BABYLON.StandardMaterial {
         const material = new BABYLON.StandardMaterial('enemyMaterial', this.scene);
-        material.diffuse = new BABYLON.Color3(1, 0.2, 0.2);
+        material.emissiveColor = new BABYLON.Color3(1, 0.2, 0.2);
         material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         return material;
     }

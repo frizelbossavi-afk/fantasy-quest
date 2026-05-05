@@ -47,14 +47,14 @@ export class Player extends Character {
 
     private createPlayerMaterial(): BABYLON.StandardMaterial {
         const material = new BABYLON.StandardMaterial('playerMaterial', this.scene);
-        material.diffuse = new BABYLON.Color3(0.2, 0.6, 1);
+        material.emissiveColor = new BABYLON.Color3(0.2, 0.6, 1);
         material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         return material;
     }
 
     private createHeadMaterial(): BABYLON.StandardMaterial {
         const material = new BABYLON.StandardMaterial('headMaterial', this.scene);
-        material.diffuse = new BABYLON.Color3(1, 0.8, 0.6);
+        material.emissiveColor = new BABYLON.Color3(1, 0.8, 0.6);
         material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         return material;
     }

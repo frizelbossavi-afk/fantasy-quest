@@ -22,7 +22,11 @@ export class Game {
     private lastFrameTime: number = 0;
 
     constructor() {
-        this.canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
+        const canvasElement = document.getElementById('renderCanvas');
+        if (!canvasElement || !(canvasElement instanceof HTMLCanvasElement)) {
+            throw new Error('Canvas element not found');
+        }
+        this.canvas = canvasElement;
         this.engine = new BABYLON.Engine(this.canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
         
