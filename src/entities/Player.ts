@@ -5,7 +5,7 @@ import { Character } from './Character';
 export class Player extends Character {
     private meshes: BABYLON.Mesh[] = [];
     private velocity: BABYLON.Vector3 = BABYLON.Vector3.Zero();
-    private moveSpeed: number = 15;
+    private moveSpeed: number = 8;
     private jumpForce: number = 10;
     private isJumping: boolean = false;
     private gravity: number = 9.81;
@@ -121,38 +121,48 @@ export class Player extends Character {
 
     private handleMovement(deltaTime: number, inputs: Inputs): void {
         const moveDirection = BABYLON.Vector3.Zero();
-
+    
         if (inputs.moveForward) moveDirection.z += 1;
         if (inputs.moveBackward) moveDirection.z -= 1;
         if (inputs.moveLeft) moveDirection.x -= 1;
         if (inputs.moveRight) moveDirection.x += 1;
-
+    
         if (moveDirection.length() > 0) {
             moveDirection.normalize();
+            
+            // --- RAJOUT : Tourner le joueur vers sa direction de marche ---
+            const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
+            this.mesh.rotation.y = targetAngle;
+            // -------------------------------------------------------------
+    
             moveDirection.scaleInPlace(this.moveSpeed * deltaTime);
             this.velocity.x = moveDirection.x;
             this.velocity.z = moveDirection.z;
         } else {
-            this.velocity.x *= 0.9; // Friction
+            this.velocity.x *= 0.9; 
             this.velocity.z *= 0.9;
         }
-
+    
+        // Gestion du saut (si la touche est dans tes Inputs)
+        if (inputs.jump && !this.isJumping) {
+            this.velocity.y = this.jumpForce;
+            this.isJumping = true;
+        }
+    
         if (inputs.attack) {
             this.attack();
         }
     }
-
     private applyGravity(deltaTime: number): void {
-        // Vérifier les collisions avec le sol (simplifié)
-        if (this.position.y > 0.1) {
+        const groundLevel = 0.6; // La moitié de la hauteur du torse pour qu'il touche le sol
+        if (this.position.y > groundLevel) {
             this.velocity.y -= this.gravity * deltaTime;
         } else {
             this.velocity.y = 0;
-            this.position.y = 0;
+            this.position.y = groundLevel;
             this.isJumping = false;
         }
     }
-
     private updatePosition(deltaTime: number): void {
         this.position.addInPlace(this.velocity.scale(deltaTime));
         if (this.mesh) {
