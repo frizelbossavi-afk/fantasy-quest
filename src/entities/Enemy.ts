@@ -3,9 +3,9 @@ import { Character, CharacterStats } from './Character';
 import { Player } from './Player';
 
 export class Enemy extends Character {
-    private detectionRange: number = 20;
-    private moveSpeed: number = 10;
-    private attackRange: number = 2;
+    private detectionRange: number = 15;
+    private moveSpeed: number = 3;
+    private attackRange: number = 1.5;
     private attackCooldown: number = 0;
     private attackDelay: number = 1.5;
     private target: Player | null = null;
@@ -121,17 +121,23 @@ export class Enemy extends Character {
     }
 
     private moveTowardsTarget(deltaTime: number): void {
-        if (!this.target) return;
-
+        if (!this.target || !this.mesh) return;
+    
         const targetPos = this.target.getPosition();
         const direction = targetPos.subtract(this.position).normalize();
-        const movement = direction.scale(this.moveSpeed * deltaTime);
+    
+        // --- CALCUL DE LA ROTATION ---
+        // On utilise atan2 pour que l'ennemi pivote vers sa cible
+        const angle = Math.atan2(direction.x, direction.z);
+        this.mesh.rotation.y = angle;
+    
+        // --- MOUVEMENT ---
+        // On réduit la vitesse ici (3 est une bonne base)
+        const speed = 3; 
+        const movement = direction.scale(speed * deltaTime);
         
         this.position.addInPlace(movement);
-        
-        if (this.mesh) {
-            this.mesh.position = this.position.clone();
-        }
+        this.mesh.position = this.position.clone();
     }
 
     private attemptAttack(deltaTime: number, player: Player): void {
@@ -143,5 +149,20 @@ export class Enemy extends Character {
 
     private idle(deltaTime: number): void {
         // L'ennemi reste en place quand il n'y a pas de cible
+    }
+
+    public takeDamage(amount: number): void {
+        this.stats.maxHealth -= amount;
+        if (this.stats.maxHealth <= 0) {
+            this.die();
+        }
+    }
+
+    private die(): void {
+        // On détruit le mesh pour qu'il disparaisse de l'écran
+        if (this.mesh) {
+            this.mesh.dispose();
+        }
+        console.log("L'ennemi est vaincu !");
     }
 }
