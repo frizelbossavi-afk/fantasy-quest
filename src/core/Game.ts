@@ -184,41 +184,51 @@ export class Game {
     }
 
     private update(): void {
-        const currentTime = performance.now();
-        this.deltaTime = (currentTime - this.lastFrameTime) / 1000;
-        this.lastFrameTime = currentTime;
-    
-        if (this.deltaTime > 0.1) this.deltaTime = 0.1;
-    
-        // --- GESTION DE L'INVENTAIRE ---
-        const inputs = this.inputManager.getInputs();
+            const currentTime = performance.now();
+            this.deltaTime = (currentTime - this.lastFrameTime) / 1000;
+            this.lastFrameTime = currentTime;
         
-        if (inputs.inventory) {
-            // On bascule l'état dans l'UI et on récupère le nouvel état (ouvert/fermé)
-            const isOpen = this.uiManager.toggleInventory();
-            // On bloque/débloque les contrôles de mouvement
-            this.inputManager.isGuiOpen = isOpen;
-    
-            // Libérer ou capturer la souris
-            if (isOpen) {
-                document.exitPointerLock();
-            } else {
-                this.canvas.requestPointerLock();
+            if (this.deltaTime > 0.1) this.deltaTime = 0.1;
+        
+            // 1. On récupère l'état brut des touches
+            const inputs = this.inputManager.getInputs();
+            
+            // 2. Gestion de l'ouverture de l'inventaire (ne doit pas être bloqué par isGuiOpen)
+            // On vérifie si la touche vient d'être pressée pour éviter le clignotement
+            if (inputs.inventory) {
+                const isOpen = this.uiManager.toggleInventory();
+                this.inputManager.isGuiOpen = isOpen;
+        
+                if (isOpen) {
+                    document.exitPointerLock();
+                } else {
+                    this.canvas.requestPointerLock();
+                }
             }
-        }
-        // -------------------------------
-    
-        // On récupère les inputs frais (potentiellement bloqués si l'inventaire est ouvert)
-        const activeInputs = this.inputManager.getInputs();
-    
-        this.player.update(this.deltaTime, activeInputs);
-        this.updateCamera();
-        this.enemyManager.update(this.deltaTime, this.player);
-        this.combatSystem.update(this.deltaTime);
         
-        // On passe les ennemis à l'UI pour le compteur en haut à droite
-        this.uiManager.update(this.player, this.enemyManager.getEnemies());
-    }
+            // 3. On récupère les inputs filtrés (mouvement = false si inventaire ouvert)
+            const activeInputs = this.inputManager.getInputs();
+        
+            // 4. LOGIQUE DE COMBAT : Déclenchement des sorts
+            // On vérifie les compétences seulement si le menu est fermé
+            if (!this.inputManager.isGuiOpen) {
+                if (activeInputs.attack) {
+                    this.combatSystem.useSkill('slash', this.enemyManager.getEnemies());
+                }
+                if (activeInputs.skill1) {
+                    this.combatSystem.useSkill('fireball', this.enemyManager.getEnemies());
+                }
+            }
+    
+            // 5. Mise à jour des entités et systèmes
+            this.player.update(this.deltaTime, activeInputs);
+            this.updateCamera();
+            this.enemyManager.update(this.deltaTime, this.player);
+            this.combatSystem.update(this.deltaTime); // Important pour les cooldowns
+            
+            // 6. Mise à jour visuelle
+            this.uiManager.update(this.player, this.enemyManager.getEnemies());
+        }
 
     private updateCamera(): void {
         const playerPos = this.player.getPosition();
